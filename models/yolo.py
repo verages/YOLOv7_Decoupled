@@ -538,7 +538,7 @@ class Model(nn.Module):
             check_anchor_order(m)
             m.anchors /= m.stride.view(-1, 1, 1)
             self.stride = m.stride
-            self._initialize_biases()  # only run once
+            #self._initialize_biases()  # only run once
             # print('Strides: %s' % m.stride.tolist())
         if isinstance(m, IDetect):
             s = 256  # 2x min stride
@@ -826,8 +826,11 @@ class Decoupled_Detect(nn.Module):
         self.nl = len(anchors)  # number of detection layers
         self.na = len(anchors[0]) // 2  # number of anchors
         self.grid = [torch.zeros(1)] * self.nl  # init grid
-        self.anchor_grid = [torch.zeros(1)] * self.nl  # init anchor grid
-        self.register_buffer('anchors', torch.tensor(anchors).float().view(self.nl, -1, 2))  # shape(nl,na,2)
+        #self.anchor_grid = [torch.zeros(1)] * self.nl  # init anchor grid
+        #self.register_buffer('anchors', torch.tensor(anchors).float().view(self.nl, -1, 2))  # shape(nl,na,2)
+        a = torch.tensor(anchors).float().view(self.nl, -1, 2)
+        self.register_buffer('anchors', a)  # shape(nl,na,2)
+        self.register_buffer('anchor_grid', a.clone().view(self.nl, 1, -1, 1, 1, 2))  # shape(nl,1,na,1,1,2)
         self.m = nn.ModuleList(DecoupledHead(x, nc, anchors) for x in ch)
         self.inplace = inplace  # use in-place ops (e.g. slice assignment)
 
